@@ -1,106 +1,94 @@
-import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { type Href, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/atoms/Button';
-import { TabSwitcher } from '@/components/atoms/TabSwitcher';
-import { TextField } from '@/components/atoms/TextField';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
+import { RetroPanel } from '@/components/atoms/RetroPanel';
+import { TerminalLoader } from '@/components/atoms/TerminalLoader';
+import { ProductRow } from '@/components/molecules/ProductRow';
+import { WebShell } from '@/components/organisms/WebShell';
+import { FontFamilies, TypeScale } from '@/constants/theme';
+import { usePalette } from '@/hooks/use-palette';
+import { fetchLowStockAlerts, fetchProductsWithStock } from '@/services/api';
+import type { ProductWithStock } from '@/types/inventory';
 
-export default function HomeScreen() {
-  const [tab, setTab] = useState('in');
-  const [sku, setSku] = useState('');
-  const [qty, setQty] = useState('');
-  const [showErr, setShowErr] = useState(false);
+export default function ProductListScreen() {
+  const pal = usePalette();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [products, setProducts] = useState<ProductWithStock[]>([]);
+  const [alertCount, setAlertCount] = useState(0);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [list, alerts] = await Promise.all([fetchProductsWithStock(), fetchLowStockAlerts()]);
+      setProducts(list);
+      setAlertCount(alerts.length);
+    } catch {
+      setError('No se pudo conectar al backend. Verifica EXPO_PUBLIC_API_URL.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ThemedView style={styles.container}>
-        <ThemedText type="title">Inventario</ThemedText>
-        <ThemedText style={styles.hint}>Vista previa de átomos UI.</ThemedText>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <ThemedText type="subtitle" style={styles.section}>
-            TabSwitcher
-          </ThemedText>
-          <TabSwitcher
-            options={[
-              { value: 'in', label: 'Entrada' },
-              { value: 'out', label: 'Salida' },
-            ]}
-            value={tab}
-            onChange={setTab}
-          />
-          <ThemedText type="defaultSemiBold" style={styles.valueLine}>
-            Activo: {tab === 'in' ? 'Entrada' : 'Salida'}
-          </ThemedText>
+    <WebShell title="Lista de productos">
+      <View style={styles.toolbar}>
+        <Button variant="primary" onPress={() => router.push('/movement' as Href)}>
+          Registrar movimiento
+        </Button>
+        <Button variant="secondary" onPress={load}>
+          Actualizar
+        </Button>
+      </View>
 
-          <ThemedText type="subtitle" style={styles.section}>
-            TextField
-          </ThemedText>
-          <TextField label="SKU" placeholder="Ej. SKU-001" value={sku} onChangeText={setSku} />
-          <View style={styles.spacer} />
-          <TextField
-            label="Cantidad"
-            placeholder="0"
-            value={qty}
-            onChangeText={setQty}
-            keyboardType="number-pad"
-            error={showErr ? 'Mínimo 1 unidad' : undefined}
-          />
-          <View style={styles.row}>
-            <Button onPress={() => setShowErr((v) => !v)}>
-              {showErr ? 'Quitar error' : 'Mostrar error'}
-            </Button>
-          </View>
+      <RetroPanel style={styles.stats}>
+        <Text style={[TypeScale[12], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
+          {`ACTIVOS: ${products.length}  |  ALERTAS STOCK: ${alertCount}`}
+        </Text>
+      </RetroPanel>
 
-          <ThemedText type="subtitle" style={styles.section}>
-            Button
-          </ThemedText>
-          <View style={styles.row}>
-            <Button variant="primary" onPress={() => {}}>
-              Primario
-            </Button>
-            <Button variant="secondary" onPress={() => {}}>
-              Secundario
-            </Button>
-          </View>
-          <View style={styles.row}>
-            <Button variant="ghost" onPress={() => {}}>
-              Ghost
-            </Button>
-            <Button variant="primary" disabled onPress={() => {}}>
-              Disabled
-            </Button>
-          </View>
-        </ScrollView>
-      </ThemedView>
-    </SafeAreaView>
+      {loading ? <TerminalLoader message="FETCHING PRODUCT REGISTRY" /> : null}
+      {error ? (
+        <RetroPanel>
+          <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.accent }]}>
+            {error}
+          </Text>
+        </RetroPanel>
+      ) : null}
+
+      {!loading && !error ? (
+        <RetroPanel style={styles.list}>
+          {products.length === 0 ? (
+            <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
+              Sin productos activos.
+            </Text>
+          ) : (
+            products.map((p) => (
+              <ProductRow
+                key={p.id}
+                product={p}
+                onMovement={(id) =>
+                  router.push({ pathname: '/movement', params: { productId: id } } as Href)
+                }
+              />
+            ))
+          )}
+        </RetroPanel>
+      ) : null}
+    </WebShell>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  container: {
-    flex: 1,
-    padding: 24,
-    gap: 8,
-  },
-  hint: { marginTop: 2, marginBottom: 8 },
-  scroll: { flex: 1 },
-  scrollContent: { paddingBottom: 32, gap: 0 },
-  section: { marginTop: 20, marginBottom: 10 },
-  valueLine: { marginTop: 8 },
-  row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 12,
-    alignItems: 'center',
-  },
-  spacer: { height: 4 },
+  toolbar: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  stats: { marginBottom: 16 },
+  list: { marginTop: 8 },
 });

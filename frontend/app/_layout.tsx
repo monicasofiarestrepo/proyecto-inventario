@@ -8,16 +8,15 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { AppNavigationDark, AppNavigationLight } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { AppNavigationDark } from '@/constants/theme';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
     CascadiaCode_400Regular,
     CascadiaCode_600SemiBold,
@@ -33,23 +32,17 @@ export default function RootLayout() {
     return null;
   }
 
-  const navTheme =
-    colorScheme === 'dark'
-      ? { ...AppNavigationDark, dark: true as const }
-      : { ...AppNavigationLight, dark: false as const };
-
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={navTheme}>
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: navTheme.colors.card },
-            headerTintColor: navTheme.colors.primary,
-            headerTitleStyle: { fontFamily: 'CascadiaCode_600SemiBold', fontSize: 16 },
-          }}>
-          <Stack.Screen name="index" options={{ title: 'Inventario' }} />
+      <ThemeProvider value={AppNavigationDark}>
+        <Stack screenOptions={{ headerShown: false, animation: Platform.OS === 'web' ? 'fade' : 'default' }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="movement" />
+          <Stack.Screen name="history" />
+          <Stack.Screen name="products" />
+          <Stack.Screen name="components" />
         </Stack>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <StatusBar style="light" />
       </ThemeProvider>
     </SafeAreaProvider>
   );
