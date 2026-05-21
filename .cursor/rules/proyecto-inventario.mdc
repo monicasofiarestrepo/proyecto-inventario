@@ -1,0 +1,23 @@
+---
+description: Contexto del inventario — leer docs/ antes de implementar
+alwaysApply: true
+---
+
+# Proyecto inventario
+
+Antes de codificar, alinear con `docs/` (fuente de verdad):
+
+- `docs/PRD.md` — alcance, stack, estructura de carpetas
+- `docs/user-stories.md` — comportamiento y criterios de aceptación
+- `docs/tickets.md` — tareas y prioridades
+- `docs/code-guidelines.md` — reglas de frontend y backend
+
+## General
+
+- Respetar estructura: `backend/`, `frontend/`, `docs/`
+- Cambios mínimos y enfocados; sin sobre-ingeniería
+- Colores solo desde el tema (`frontend/constants/theme.ts`), no hex sueltos en componentes
+- No crear `.md` de instrucciones salvo que el usuario lo pida
+- Commits/PR solo cuando el usuario lo solicite explícitamente
+
+Si hay conflicto entre código existente y `docs/`, priorizar `docs/` y avisar al usuario.

@@ -1,0 +1,27 @@
+---
+description: Backend NestJS — capas, transacciones y tipado (docs/code-guidelines.md)
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Backend (NestJS)
+
+## Capas
+
+- **Controller:** rutas, HTTP status, payloads. Sin lógica de negocio ni SQL.
+- **Service:** 100% lógica de negocio, cálculos y transacciones DB.
+- **DTO:** `class-validator` + `class-transformer`; pipes rechazan payloads inválidos antes del service.
+
+## Datos e inventario
+
+- Stock: agregación en PostgreSQL (`SUM`, `CASE WHEN`) vía TypeORM `QueryBuilder`; no iterar masivos en Node.
+- Movimientos `OUT`: `dataSource.transaction()` — lectura de stock + inserción en el mismo bloque (anti race conditions).
+
+## Calidad
+
+- Prohibido `any`; retornos explícitos (`Promise<Product[]>`, etc.).
+- Errores: `BadRequestException`, `NotFoundException`, `InternalServerErrorException` con mensajes claros; sin `try/catch` vacíos.
+
+## Estructura esperada
+
+`products/`, `movements/`, `inventory/`, `common/` bajo `backend/src/` según `docs/PRD.md`.

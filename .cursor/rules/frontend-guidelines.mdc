@@ -1,0 +1,30 @@
+---
+description: Frontend — estética retro, átomos y UX (docs/code-guidelines.md)
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Frontend (React / Expo)
+
+## Estética retro cyberpunk
+
+- Fondo: `#0A0512` | Base: `#1A0B2E` | Neón: `#BC34FA` | Secundario: `#A193B8` | Alerta: `#FF2A85`
+- Tipografía monoespaciada; contraste mínimo 4.5:1
+- Bordes 1px sólidos en bloques de datos (`#BC34FA`)
+- Tokens en `constants/theme.ts`; componentes usan `Colors` / `useThemeColor`, nunca hex inline
+
+## Arquitectura atómica (`components/`)
+
+- **Átomos:** sin estado de negocio, sin márgenes externos (`atoms/`)
+- **Moléculas:** composición de átomos + interacción local (`molecules/`)
+- **Organismos / pantallas:** estado, hooks, API, layout (`organisms/`, `app/` o `pages/`)
+
+## UX obligatoria
+
+- Loader tipo terminal en peticiones iniciales (cold start Render): `>> LOADING SYSTEM DATA...`
+- `StockBadge` crítico: parpadeo CSS ~1.5s (`opacity` 1 ↔ 0.3)
+- Alerta bajo stock: `stock_actual <= stock_minimo` (badge sutil, no modal intrusivo)
+
+## API
+
+- Llamadas HTTP vía capa `services/` (Axios), no fetch suelto en pantallas

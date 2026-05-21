@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress"],
+  "testRunner": "jest",
+  "jest": {
+    "configFile": "package.json"
+  },
+  "mutate": [
+    "src/movements/movements.service.ts",
+    "src/products/products.service.ts",
+    "src/inventory/inventory.service.ts"
+  ],
+  "thresholds": {
+    "high": 80,
+    "low": 60,
+    "break": null
+  }
+}
