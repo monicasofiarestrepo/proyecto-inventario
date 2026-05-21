@@ -18,6 +18,11 @@ import {
   updateProduct,
 } from '@/services/api';
 import type { Product, UnitMeasure } from '@/types/inventory';
+import {
+  formatQuantity,
+  parseQuantityInput,
+  sanitizeQuantityInput,
+} from '@/utils/quantity';
 
 const UNITS: { value: UnitMeasure; label: string }[] = [
   { value: 'unidades', label: 'Unidades' },
@@ -81,15 +86,32 @@ export default function ProductsManageScreen() {
     setDescription(p.description);
     setCategory(p.category);
     setUnitMeasure(p.unitMeasure);
-    setMinStock(String(p.minStock));
+    setMinStock(formatQuantity(p.minStock, p.unitMeasure));
+  };
+
+  const onUnitChange = (v: string) => {
+    const unit = v as UnitMeasure;
+    setUnitMeasure(unit);
+    if (!minStock.trim()) return;
+    const parsed = parseQuantityInput(minStock, unit);
+    if (parsed !== null) {
+      setMinStock(formatQuantity(parsed, unit));
+      return;
+    }
+    const fallback = parseFloat(minStock);
+    setMinStock(Number.isNaN(fallback) ? '0' : formatQuantity(fallback, unit));
   };
 
   const onSave = async () => {
     setError(null);
     setStatus(null);
-    const min = parseInt(minStock, 10);
-    if (!name.trim() || Number.isNaN(min) || min < 0) {
-      setError('Nombre obligatorio y stock mínimo >= 0.');
+    const min = parseQuantityInput(minStock, unitMeasure);
+    if (!name.trim() || min === null) {
+      setError(
+        unitMeasure === 'unidades'
+          ? 'Nombre obligatorio y stock mínimo entero >= 0.'
+          : 'Nombre obligatorio y stock mínimo >= 0 (máx. 3 decimales).',
+      );
       return;
     }
     const payload = {
@@ -161,13 +183,14 @@ export default function ProductsManageScreen() {
           label="Unidad"
           options={UNITS}
           value={unitMeasure}
-          onChange={(v) => setUnitMeasure(v as UnitMeasure)}
+          onChange={onUnitChange}
         />
         <TextField
           label="Stock mínimo"
           value={minStock}
-          onChangeText={setMinStock}
-          keyboardType="number-pad"
+          onChangeText={(text) => setMinStock(sanitizeQuantityInput(text, unitMeasure))}
+          keyboardType={unitMeasure === 'unidades' ? 'number-pad' : 'decimal-pad'}
+          placeholder={unitMeasure === 'unidades' ? '0' : '0.000'}
         />
         <View style={styles.actions}>
           <Button variant="primary" disabled={saving} onPress={onSave}>
@@ -203,7 +226,7 @@ export default function ProductsManageScreen() {
                 {p.name}
               </Text>
               <Text style={[TypeScale[12], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
-                {`${p.category} · min ${p.minStock} ${p.unitMeasure}`}
+                {`${p.category} · min ${formatQuantity(p.minStock, p.unitMeasure)} ${p.unitMeasure}`}
               </Text>
               <View style={styles.actions}>
                 <Button variant="secondary" onPress={() => fillForm(p)}>

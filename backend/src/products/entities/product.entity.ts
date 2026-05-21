@@ -26,7 +26,7 @@ export class Product {
   @Column()
   category: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'decimal', precision: 12, scale: 3, default: 0 })
   minStock: number;
 
   @Column({ default: true })

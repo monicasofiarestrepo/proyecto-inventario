@@ -3,6 +3,7 @@ import { Animated, StyleSheet, Text } from 'react-native';
 
 import { FontFamilies, TypeScale } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
+import { formatQuantity } from '@/utils/quantity';
 
 type StockBadgeProps = {
   stock: number;
@@ -32,9 +33,11 @@ export function StockBadge({ stock, minStock, unit }: StockBadgeProps) {
 
   const color = critical ? pal.accent : pal.textMuted;
   const unitSuffix = unit ? ` ${unit}` : '';
+  const stockLabel = formatQuantity(stock, unit);
+  const minLabel = formatQuantity(minStock, unit);
   const text = critical
-    ? `BAJO STOCK: ${stock}${unitSuffix} / min ${minStock}`
-    : `OK: ${stock}${unitSuffix} / min ${minStock}`;
+    ? `BAJO STOCK: ${stockLabel}${unitSuffix} / min ${minLabel}`
+    : `OK: ${stockLabel}${unitSuffix} / min ${minLabel}`;
 
   return (
     <Animated.View style={[styles.badge, { borderColor: color, opacity: critical ? opacity : 1 }]}>

@@ -1,6 +1,7 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 import { UnitMeasure } from '../../common/enums';
+import { ValidateQuantityForUnit } from '../../common/validators/quantity-for-unit.validator';
 
 export class CreateProductDto {
   @IsString()
@@ -18,7 +19,8 @@ export class CreateProductDto {
   @IsNotEmpty()
   category: string;
 
-  @IsInt()
+  @IsNumber()
   @Min(0)
+  @ValidateQuantityForUnit()
   minStock: number;
 }

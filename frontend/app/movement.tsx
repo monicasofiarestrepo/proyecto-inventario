@@ -18,6 +18,11 @@ import {
   getApiErrorMessage,
 } from '@/services/api';
 import type { MovementReason, MovementType, Product } from '@/types/inventory';
+import {
+  formatQuantity,
+  parseQuantityInput,
+  sanitizeQuantityInput,
+} from '@/utils/quantity';
 
 const REASONS: { value: MovementReason; label: string }[] = [
   { value: 'compra', label: 'Compra' },
@@ -86,9 +91,20 @@ export default function MovementFormScreen() {
     }
   }, [type, productId, loadStock]);
 
-  const qtyNum = parseInt(quantity, 10);
-  const qtyValid = Number.isInteger(qtyNum) && qtyNum > 0;
-  const qtyError = quantity.length > 0 && !qtyValid ? 'Entero positivo requerido' : undefined;
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === productId),
+    [products, productId],
+  );
+  const unitMeasure = selectedProduct?.unitMeasure ?? 'unidades';
+
+  const qtyNum = parseQuantityInput(quantity, unitMeasure);
+  const qtyValid = qtyNum !== null && qtyNum > 0;
+  const qtyError =
+    quantity.length > 0 && !qtyValid
+      ? unitMeasure === 'unidades'
+        ? 'Entero positivo requerido'
+        : 'Cantidad positiva (máx. 3 decimales)'
+      : undefined;
 
   const exceedsStock =
     type === 'OUT' && availableStock !== null && qtyValid && qtyNum > availableStock;
@@ -107,7 +123,7 @@ export default function MovementFormScreen() {
     setError(null);
     setMessage(null);
     try {
-      await createMovement({ type, quantity: qtyNum, productId, reason });
+      await createMovement({ type, quantity: qtyNum as number, productId, reason });
       setMessage('>> MOVIMIENTO REGISTRADO OK');
       setQuantity('');
       setReason('compra');
@@ -167,16 +183,22 @@ export default function MovementFormScreen() {
 
         {type === 'OUT' && availableStock !== null ? (
           <Text style={[TypeScale[12], { fontFamily: FontFamilies.regular, color: pal.tint }]}>
-            {`STOCK DISPONIBLE: ${availableStock}`}
+            {`STOCK DISPONIBLE: ${formatQuantity(availableStock, unitMeasure)} ${unitMeasure}`}
           </Text>
         ) : null}
 
         <TextField
           label="Cantidad"
           value={quantity}
-          onChangeText={setQuantity}
-          keyboardType="number-pad"
-          error={qtyError ?? (exceedsStock ? `Máximo ${availableStock}` : undefined)}
+          onChangeText={(text) => setQuantity(sanitizeQuantityInput(text, unitMeasure))}
+          keyboardType={unitMeasure === 'unidades' ? 'number-pad' : 'decimal-pad'}
+          placeholder={unitMeasure === 'unidades' ? '1' : '0.000'}
+          error={
+            qtyError ??
+            (exceedsStock && availableStock !== null
+              ? `Máximo ${formatQuantity(availableStock, unitMeasure)}`
+              : undefined)
+          }
         />
 
         <SelectField

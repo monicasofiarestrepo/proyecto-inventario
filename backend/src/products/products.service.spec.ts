@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -50,6 +50,16 @@ describe('ProductsService', () => {
     const result = await service.create(dto);
     expect(result.active).toBe(true);
     expect(productRepo.save).toHaveBeenCalled();
+  });
+
+  it('rejects decimal minStock for unidades', async () => {
+    const dto = {
+      name: 'Harina',
+      unitMeasure: UnitMeasure.UNIDADES,
+      category: 'Almacén',
+      minStock: 2.5,
+    };
+    await expect(service.create(dto)).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('throws when product not found', async () => {

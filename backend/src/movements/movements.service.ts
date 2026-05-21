@@ -3,6 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
 import { MovementType } from '../common/enums';
+import {
+  isPositiveQuantity,
+  normalizeQuantity,
+  quantityValidationMessage,
+} from '../common/quantity.util';
 import { InventoryService } from '../inventory/inventory.service';
 import { Product } from '../products/entities/product.entity';
 import { CreateMovementDto } from './dto/create-movement.dto';
@@ -27,6 +32,15 @@ export class MovementsService {
     if (!product) {
       throw new NotFoundException('Producto no encontrado o inactivo');
     }
+
+    if (!isPositiveQuantity(dto.quantity, product.unitMeasure)) {
+      throw new BadRequestException(
+        product.unitMeasure === 'unidades'
+          ? 'Cantidad entera positiva requerida'
+          : 'Cantidad positiva con hasta 3 decimales',
+      );
+    }
+    dto.quantity = normalizeQuantity(dto.quantity, product.unitMeasure);
 
     if (dto.type === MovementType.OUT) {
       return this.dataSource.transaction(async (manager) => {

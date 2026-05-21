@@ -25,7 +25,7 @@ export class Movement {
   @Column({ type: 'enum', enum: MovementType })
   type: MovementType;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'decimal', precision: 12, scale: 3 })
   quantity: number;
 
   @Column({ type: 'enum', enum: MovementReason })
