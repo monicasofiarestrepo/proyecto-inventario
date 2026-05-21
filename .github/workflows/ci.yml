@@ -41,16 +41,26 @@ jobs:
 
       - run: npm run build
 
-      - name: Unit and PBT tests
-        run: npm test -- --watchman=false --coverage
+      - name: Unit tests
+        run: npm test -- --watchman=false --coverage --testPathIgnorePatterns=pbt
         env:
           CI: true
 
-      - name: E2E tests
+      - name: Property-based tests
+        run: npm run test:pbt -- --watchman=false
+        env:
+          CI: true
+
+      - name: E2E API tests
         run: npm run test:e2e -- --watchman=false
         env:
           DATABASE_URL: postgresql://inventario:inventario@localhost:5432/inventario
           NODE_ENV: test
+
+      - name: Mutation tests
+        run: npm run test:stryker
+        env:
+          CI: true
 
   frontend:
     runs-on: ubuntu-latest
@@ -72,3 +82,68 @@ jobs:
       - run: npx tsc --noEmit
 
       - run: npm run lint
+
+  frontend-e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: inventario
+          POSTGRES_PASSWORD: inventario
+          POSTGRES_DB: inventario
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install and start API
+        run: |
+          cd ../backend
+          npm ci
+          npm run build
+          npm run start:prod &
+          echo "Waiting for API..."
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/products && break
+            sleep 2
+          done
+        env:
+          DATABASE_URL: postgresql://inventario:inventario@localhost:5432/inventario
+          NODE_ENV: development
+          CORS_ORIGIN: '*'
+
+      - name: Build static web
+        run: npm run build:web
+        env:
+          EXPO_PUBLIC_API_URL: http://localhost:3000
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright E2E
+        run: npm run test:e2e
+        env:
+          CI: true
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+          PLAYWRIGHT_API_URL: http://localhost:3000

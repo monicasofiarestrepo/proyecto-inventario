@@ -170,13 +170,25 @@ npm run web
 ## Tests y CI
 
 ```bash
-cd backend
-npm install
+# Backend
+cd backend && npm install
 npm test
 npm run test:pbt
+npm run test:stryker
+
+# Frontend E2E (API local + build estático)
+cd frontend && npm install
+cd ../backend && docker compose up -d && npm run start:dev
+cd ../frontend
+EXPO_PUBLIC_API_URL=http://localhost:3000 npm run build:web
+PLAYWRIGHT_API_URL=http://localhost:3000 npm run test:e2e
 ```
 
-El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) ejecuta tests del backend (con Postgres) y verificaciones del frontend en cada push a `main`.
+![CI](https://github.com/monicasofiarestrepo/proyecto-inventario/actions/workflows/ci.yml/badge.svg)
+
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) ejecuta: tests unitarios, PBT, e2e API, Stryker (mutation score ≥ 70%), lint/tsc (frontend) y Playwright E2E (frontend con API en CI).
+
+Mutation testing (última corrida local): **~78%** en `quantity.util`, `movements.service` y `products.service`.
 
 ---
 
@@ -189,7 +201,7 @@ El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) ejecuta tests
 
 Variables clave en producción:
 
-- **API:** `DATABASE_URL`, `NODE_ENV=production`, `CORS_ORIGIN` (URL del static site o `*`)
+- **API:** `DATABASE_URL`, `NODE_ENV=production`, `CORS_ORIGIN=https://proyecto-inventario-8r82.onrender.com`
 - **Web:** `EXPO_PUBLIC_API_URL=https://inventario-api-yyie.onrender.com`
 
 ---

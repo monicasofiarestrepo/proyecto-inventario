@@ -112,6 +112,8 @@ Salida en la carpeta **`dist/`** (directorio de publicación en Render).
 | `npm run web` | Servidor de desarrollo web |
 | `npm start` | Expo dev (todas las plataformas) |
 | `npm run lint` | ESLint |
+| `npm run build:web` | Export estático a `dist/` |
+| `npm run test:e2e` | Playwright (`e2e/product-list`, `e2e/movement-form`) |
 
 ---
 

@@ -1,14 +1,21 @@
 import { UnitMeasure } from './enums';
 import {
+  allowsDecimalQuantity,
   isPositiveQuantity,
   isValidQuantity,
   normalizeQuantity,
+  quantityValidationMessage,
 } from './quantity.util';
 
 describe('quantity.util', () => {
   it('accepts integers for unidades', () => {
     expect(isValidQuantity(10, UnitMeasure.UNIDADES)).toBe(true);
     expect(isValidQuantity(10.5, UnitMeasure.UNIDADES)).toBe(false);
+  });
+
+  it('rejects negative quantities', () => {
+    expect(isValidQuantity(-1, UnitMeasure.KG)).toBe(false);
+    expect(isPositiveQuantity(-1, UnitMeasure.UNIDADES)).toBe(false);
   });
 
   it('accepts up to 3 decimals for kg and litros', () => {
@@ -25,5 +32,15 @@ describe('quantity.util', () => {
   it('requires positive quantity for movements', () => {
     expect(isPositiveQuantity(0, UnitMeasure.UNIDADES)).toBe(false);
     expect(isPositiveQuantity(0.5, UnitMeasure.KG)).toBe(true);
+  });
+
+  it('allowsDecimalQuantity by unit', () => {
+    expect(allowsDecimalQuantity(UnitMeasure.UNIDADES)).toBe(false);
+    expect(allowsDecimalQuantity(UnitMeasure.KG)).toBe(true);
+  });
+
+  it('validation messages differ by unit', () => {
+    expect(quantityValidationMessage(UnitMeasure.UNIDADES)).toContain('entero');
+    expect(quantityValidationMessage(UnitMeasure.LITROS)).toContain('decimales');
   });
 });

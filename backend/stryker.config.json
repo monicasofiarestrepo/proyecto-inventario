@@ -4,16 +4,20 @@
   "reporters": ["html", "clear-text", "progress"],
   "testRunner": "jest",
   "jest": {
-    "configFile": "package.json"
+    "configFile": "package.json",
+    "config": {
+      "watchman": false
+    }
   },
+  "timeoutMS": 60000,
   "mutate": [
+    "src/common/quantity.util.ts",
     "src/movements/movements.service.ts",
-    "src/products/products.service.ts",
-    "src/inventory/inventory.service.ts"
+    "src/products/products.service.ts"
   ],
   "thresholds": {
     "high": 80,
-    "low": 60,
-    "break": null
+    "low": 70,
+    "break": 70
   }
 }

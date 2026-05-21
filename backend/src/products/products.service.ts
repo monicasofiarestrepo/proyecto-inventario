@@ -67,15 +67,7 @@ export class ProductsService {
 
   async deactivate(id: string): Promise<Product> {
     const product = await this.findOne(id);
-    const movementCount = await this.movementRepo.count({
-      where: { productId: id },
-    });
-
-    if (movementCount > 0) {
-      product.active = false;
-      return this.productRepo.save(product);
-    }
-
+    await this.movementRepo.count({ where: { productId: id } });
     product.active = false;
     return this.productRepo.save(product);
   }
