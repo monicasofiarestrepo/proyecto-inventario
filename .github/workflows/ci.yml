@@ -124,10 +124,14 @@ jobs:
           npm run build
           npm run start:prod &
           echo "Waiting for API..."
-          for i in $(seq 1 30); do
-            curl -sf http://localhost:3000/products && break
+          for i in $(seq 1 45); do
+            if curl -sf http://localhost:3000/products >/dev/null; then
+              echo "API ready"
+              break
+            fi
             sleep 2
           done
+          curl -sf http://localhost:3000/products | head -c 200 || exit 1
         env:
           DATABASE_URL: postgresql://inventario:inventario@localhost:5432/inventario
           NODE_ENV: development

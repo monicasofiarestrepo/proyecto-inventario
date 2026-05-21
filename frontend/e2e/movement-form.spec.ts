@@ -1,6 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 import { addMovement, createTestProduct } from './helpers/api';
+import { selectProduct, waitForMovementCatalog } from './helpers/movement';
+
+test.describe.configure({ mode: 'serial' });
 
 test.describe('Formulario de movimiento', () => {
   test('bloquea salida cuando cantidad supera stock', async ({ page }) => {
@@ -8,11 +11,11 @@ test.describe('Formulario de movimiento', () => {
     await addMovement(product.id, 'IN', 5);
 
     await page.goto('/movement');
-    await expect(page.getByText('INVENTARIO')).toBeVisible({ timeout: 20_000 });
+    await waitForMovementCatalog(page);
+    await selectProduct(page, product);
 
-    await page.getByRole('button', { name: product.name }).click();
     await page.getByRole('tab', { name: 'SALIDA' }).click();
-    await expect(page.getByText(/STOCK DISPONIBLE/i)).toBeVisible();
+    await expect(page.getByText(/STOCK DISPONIBLE/i)).toBeVisible({ timeout: 15_000 });
 
     await page.getByPlaceholder('1').fill('10');
     const submit = page.getByRole('button', { name: 'Registrar' });
@@ -24,8 +27,9 @@ test.describe('Formulario de movimiento', () => {
     const product = await createTestProduct('move-in', 0);
 
     await page.goto('/movement');
-    await expect(page.getByText('INVENTARIO')).toBeVisible({ timeout: 20_000 });
-    await page.getByRole('button', { name: product.name }).click();
+    await waitForMovementCatalog(page);
+    await selectProduct(page, product);
+
     await page.getByRole('tab', { name: 'ENTRADA' }).click();
     await page.getByPlaceholder('1').fill('7');
     await page.getByRole('button', { name: 'Registrar' }).click();

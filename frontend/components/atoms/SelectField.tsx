@@ -57,6 +57,9 @@ export function SelectField({
             return (
               <Pressable
                 key={opt.value}
+                accessibilityRole="button"
+                accessibilityLabel={opt.label}
+                accessibilityState={{ selected: active }}
                 onPress={() => onChange(opt.value)}
                 style={[
                   styles.chip,
