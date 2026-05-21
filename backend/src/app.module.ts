@@ -12,12 +12,17 @@ import { ProductsModule } from './products/products.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        url: config.get<string>('DATABASE_URL'),
-        autoLoadEntities: true,
-        synchronize: config.get<string>('NODE_ENV') !== 'production',
-      }),
+      useFactory: (config: ConfigService) => {
+        const isProduction = config.get<string>('NODE_ENV') === 'production';
+
+        return {
+          type: 'postgres',
+          url: config.get<string>('DATABASE_URL'),
+          autoLoadEntities: true,
+          synchronize: true,
+          ssl: isProduction ? { rejectUnauthorized: false } : false,
+        };
+      },
     }),
     ProductsModule,
     MovementsModule,
