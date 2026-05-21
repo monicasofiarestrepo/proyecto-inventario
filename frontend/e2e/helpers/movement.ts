@@ -6,7 +6,7 @@ export async function waitForMovementCatalog(page: Page) {
   await expect(page.getByText('INVENTARIO')).toBeVisible({ timeout: 20_000 });
   await expect(page.getByText('LOADING CATALOG')).toBeHidden({ timeout: 35_000 });
   await expect(page.getByText('No hay productos activos')).toBeHidden({ timeout: 5_000 });
-  await expect(page.getByText('PRODUCTO')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('PRODUCTO', { exact: true })).toBeVisible({ timeout: 10_000 });
 }
 
 export async function selectProduct(page: Page, product: TestProduct) {
