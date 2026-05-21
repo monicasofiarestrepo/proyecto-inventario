@@ -1,34 +1,39 @@
-# Sistema de gestión de inventario
+# Inventario SYS
 
-Backend NestJS + frontend Expo (React Native Web) para catálogo de productos, movimientos de stock, consulta de inventario en tiempo real y alertas de stock mínimo.
+Sistema de gestión de inventario con **API REST** (NestJS + PostgreSQL) e **interfaz web** retro cyberpunk (Expo / React Native Web). Permite administrar productos, registrar movimientos de stock, consultar inventario en tiempo real y recibir alertas cuando el stock cae al mínimo configurado.
 
-## URLs del sistema desplegado
+---
 
-| Servicio | URL |
-|----------|-----|
-| **API (Render)** | https://inventario-api-yyie.onrender.com |
-| **Frontend** | Ejecución local (ver abajo). La interfaz web se abre en el navegador tras `npm run web`. |
+## Demo en producción
 
-Comprobación rápida de la API (el plan free puede tardar ~30–60 s en despertar):
+El proyecto está **completamente hosteado** en Render. Puedes evaluarlo sin instalar nada en tu máquina.
+
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| **Aplicación web** | [https://proyecto-inventario-8r82.onrender.com](https://proyecto-inventario-8r82.onrender.com/) | Interfaz estática (Expo export) |
+| **API REST** | [https://inventario-api-yyie.onrender.com](https://inventario-api-yyie.onrender.com) | Backend NestJS + PostgreSQL |
+
+> **Nota:** En el plan free de Render, la API puede tardar **30–60 segundos** en responder la primera petición tras un periodo de inactividad. La web estática no tiene ese retraso.
+
+**Comprobación rápida de la API:**
 
 ```bash
 curl https://inventario-api-yyie.onrender.com/products
 ```
 
-Respuesta esperada: `[]` o un arreglo JSON de productos.
+Respuesta esperada: `[]` o un arreglo JSON de productos activos.
 
 ---
 
-## Ejecución para el evaluador (solo frontend + API en Render)
+## Guía rápida para el evaluador
 
-No es necesario levantar backend ni base de datos en local: el frontend usa la API ya desplegada en Render.
+### Opción A — Solo navegador (recomendada)
 
-### Requisitos
+1. Abre **[https://proyecto-inventario-8r82.onrender.com](https://proyecto-inventario-8r82.onrender.com/)**.
+2. Espera unos segundos si la primera carga de datos tarda (API despertando).
+3. Sigue el flujo de validación más abajo.
 
-- Node.js 20 o superior
-- npm
-
-### Pasos
+### Opción B — Frontend local + API en la nube
 
 ```bash
 git clone https://github.com/monicasofiarestrepo/proyecto-inventario.git
@@ -38,20 +43,26 @@ cp .env.example .env
 npm run web
 ```
 
-El archivo `frontend/.env.example` ya apunta a la API de producción:
+Abre en el navegador la URL que indique Expo (habitualmente `http://localhost:8081`). El `.env` ya apunta a la API de producción.
 
-```
-EXPO_PUBLIC_API_URL=https://inventario-api-yyie.onrender.com
-```
+### Flujo sugerido de validación
 
-Abre en el navegador la URL que muestre Expo (suele ser `http://localhost:8081`).
+| Paso | Ruta | Qué validar |
+|------|------|-------------|
+| 1 | `/products` | Crear producto (nombre, categoría, unidad, stock mínimo). Unidades = enteros; kg/litros = hasta 3 decimales. |
+| 2 | `/` | Listado con stock actual y badge de alerta si `stock ≤ minStock`. |
+| 3 | `/movement` | Entrada (IN) y salida (OUT). En OUT se muestra stock disponible y no permite excederlo. |
+| 4 | `/history` | Historial con filtros por producto, tipo y fechas. |
 
-### Flujo sugerido para validar funcionalidades
+---
 
-1. **Catálogo** (`/products`) — Crear un producto (nombre, categoría, unidad, stock mínimo).
-2. **Productos** (`/`) — Listado con stock actual e indicador de alerta si `stock <= minStock`.
-3. **Movimiento** (`/movement`) — Registrar entrada (IN) y luego salida (OUT); en salida se muestra stock disponible y no permite superar el límite.
-4. **Historial** (`/history`) — Filtrar movimientos por producto, tipo y fechas.
+## Stack tecnológico
+
+| Capa | Tecnologías |
+|------|-------------|
+| **Backend** | NestJS, TypeORM, PostgreSQL, class-validator, Jest, fast-check |
+| **Frontend** | Expo Router, React Native Web, Axios, tipografía Cascadia Code |
+| **Infra** | Render (Web Service + Static Site + Postgres), GitHub Actions CI |
 
 ---
 
@@ -59,48 +70,65 @@ Abre en el navegador la URL que muestre Expo (suele ser `http://localhost:8081`)
 
 ```
 proyecto-inventario/
-├── backend/          # NestJS, TypeORM, PostgreSQL
-├── frontend/         # Expo Router, pantallas web
-├── docs/             # PRD, user stories, tickets
-├── prompts.md        # Prompts usados en el proyecto
-└── .github/workflows/ci.yml
+├── backend/              # API NestJS
+├── frontend/           # App web Expo
+├── docs/               # PRD, user stories, tickets
+├── prompts.md          # Prompts de desarrollo con IA
+└── .github/workflows/  # CI (tests backend + lint frontend)
 ```
+
+Documentación de producto: [`docs/PRD.md`](docs/PRD.md).
 
 ---
 
-## Endpoints de la API (Render)
+## API — Endpoints principales
 
-Base: `https://inventario-api-yyie.onrender.com`
+**Base URL:** `https://inventario-api-yyie.onrender.com`
 
 | Módulo | Método | Ruta | Descripción |
 |--------|--------|------|-------------|
-| Products | POST | `/products` | Crear producto |
-| Products | GET | `/products` | Listar productos activos |
-| Products | GET | `/products/:id` | Detalle |
-| Products | PATCH | `/products/:id` | Actualizar |
-| Products | DELETE | `/products/:id` | Desactivar (no borra si hay movimientos) |
-| Movements | POST | `/movements` | Registrar entrada/salida |
-| Movements | GET | `/movements` | Historial (filtros: `productId`, `type`, `startDate`, `endDate`) |
-| Movements | GET | `/movements/:id` | Detalle |
-| Inventory | GET | `/inventory` | Stock de todos los productos |
-| Inventory | GET | `/inventory/:productId` | Stock de un producto |
-| Inventory | GET | `/inventory/alerts/low-stock` | Productos en o bajo stock mínimo |
+| Products | `POST` | `/products` | Crear producto |
+| Products | `GET` | `/products` | Listar activos |
+| Products | `GET` | `/products/:id` | Detalle |
+| Products | `PATCH` | `/products/:id` | Actualizar |
+| Products | `DELETE` | `/products/:id` | Desactivar (lógico si hay movimientos) |
+| Movements | `POST` | `/movements` | Registrar IN / OUT |
+| Movements | `GET` | `/movements` | Historial (`productId`, `type`, `startDate`, `endDate`) |
+| Movements | `GET` | `/movements/:id` | Detalle |
+| Inventory | `GET` | `/inventory` | Stock de todos los productos |
+| Inventory | `GET` | `/inventory/:productId` | Stock de un producto |
+| Inventory | `GET` | `/inventory/alerts/low-stock` | Alertas de stock bajo |
 
-Ejemplo — crear producto:
+**Ejemplo — crear producto:**
 
 ```bash
 curl -X POST https://inventario-api-yyie.onrender.com/products \
   -H "Content-Type: application/json" \
-  -d '{"name":"Tornillo M6","description":"","unitMeasure":"unidades","category":"Ferretería","minStock":10}'
+  -d '{
+    "name": "Tornillo M6",
+    "description": "",
+    "unitMeasure": "unidades",
+    "category": "Ferretería",
+    "minStock": 10
+  }'
 ```
+
+Detalle de módulos y scripts: [`backend/README.md`](backend/README.md).  
+Pantallas y build web: [`frontend/README.md`](frontend/README.md).
 
 ---
 
-## Ejecución local completa (opcional)
+## Ejecución local (stack completo)
 
-Para desarrollar o probar backend y base de datos en la máquina local.
+Para desarrollar o depurar backend y base de datos en tu equipo.
 
-### Base de datos
+### Requisitos
+
+- Node.js **20+**
+- npm
+- Docker (solo para Postgres local)
+
+### 1. Base de datos
 
 ```bash
 cd backend
@@ -108,7 +136,7 @@ docker compose up -d
 cp .env.example .env
 ```
 
-### Backend (puerto 3000)
+### 2. Backend (puerto 3000)
 
 ```bash
 cd backend
@@ -116,18 +144,30 @@ npm install
 npm run start:dev
 ```
 
-### Frontend apuntando al backend local
+### 3. Frontend
+
+**Contra API local:**
 
 ```bash
 cd frontend
 npm install
-export EXPO_PUBLIC_API_URL=http://localhost:3000
+cp .env.example .env.local
+# Edita .env.local: EXPO_PUBLIC_API_URL=http://localhost:3000
+EXPO_PUBLIC_API_URL=http://localhost:3000 npm run web
+```
+
+**Contra API en Render** (sin levantar backend):
+
+```bash
+cd frontend
+npm install
+cp .env.example .env
 npm run web
 ```
 
 ---
 
-## Tests
+## Tests y CI
 
 ```bash
 cd backend
@@ -136,17 +176,24 @@ npm test
 npm run test:pbt
 ```
 
-El pipeline en `.github/workflows/ci.yml` ejecuta tests del backend (con Postgres) y lint/typecheck del frontend en cada push.
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) ejecuta tests del backend (con Postgres) y verificaciones del frontend en cada push a `main`.
 
 ---
 
 ## Despliegue (referencia)
 
-La API y PostgreSQL están en [Render](https://render.com). Configuración del Web Service:
+| Componente | Plataforma | Configuración |
+|------------|------------|---------------|
+| API + DB | Render Web Service + Postgres | `backend/` — ver [`backend/render.yaml`](backend/render.yaml) |
+| Web | Render Static Site | `frontend/` — build: `npx expo export --platform web`, publish: `dist` |
 
-- **Root Directory:** `backend`
-- **Build:** `npm install --include=dev && npm run build`
-- **Start:** `npm run start:prod`
-- **Variables:** `DATABASE_URL`, `NODE_ENV=production`, `CORS_ORIGIN=*` (o URL del frontend)
+Variables clave en producción:
 
-Blueprint opcional: [`backend/render.yaml`](backend/render.yaml).
+- **API:** `DATABASE_URL`, `NODE_ENV=production`, `CORS_ORIGIN` (URL del static site o `*`)
+- **Web:** `EXPO_PUBLIC_API_URL=https://inventario-api-yyie.onrender.com`
+
+---
+
+## Repositorio
+
+[github.com/monicasofiarestrepo/proyecto-inventario](https://github.com/monicasofiarestrepo/proyecto-inventario)
