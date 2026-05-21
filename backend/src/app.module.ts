@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 
 import { InventoryModule } from './inventory/inventory.module';
 import { MovementsModule } from './movements/movements.module';
@@ -19,7 +20,9 @@ import { ProductsModule } from './products/products.module';
           type: 'postgres',
           url: config.get<string>('DATABASE_URL'),
           autoLoadEntities: true,
-          synchronize: true,
+          synchronize: !isProduction,
+          migrations: [join(__dirname, 'database', 'migrations', '*.js')],
+          migrationsRun: isProduction,
           ssl: isProduction ? { rejectUnauthorized: false } : false,
         };
       },
