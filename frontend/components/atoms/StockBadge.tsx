@@ -30,14 +30,16 @@ export function StockBadge({ stock, minStock, unit }: StockBadgeProps) {
     return () => loop.stop();
   }, [critical, opacity]);
 
-  const label = critical ? 'BAJO STOCK' : 'OK';
   const color = critical ? pal.accent : pal.textMuted;
+  const unitSuffix = unit ? ` ${unit}` : '';
+  const text = critical
+    ? `BAJO STOCK: ${stock}${unitSuffix} / min ${minStock}`
+    : `OK: ${stock}${unitSuffix} / min ${minStock}`;
 
   return (
     <Animated.View style={[styles.badge, { borderColor: color, opacity: critical ? opacity : 1 }]}>
       <Text style={[TypeScale[11], { fontFamily: FontFamilies.semibold, color }]}>
-        {label} · {stock}
-        {unit ? ` ${unit}` : ''}
+        {text}
       </Text>
     </Animated.View>
   );

@@ -1,5 +1,5 @@
-import { type Href, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { type Href, useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/atoms/Button';
@@ -9,7 +9,7 @@ import { ProductRow } from '@/components/molecules/ProductRow';
 import { WebShell } from '@/components/organisms/WebShell';
 import { FontFamilies, TypeScale } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
-import { fetchLowStockAlerts, fetchProductsWithStock } from '@/services/api';
+import { API_BASE_URL, fetchLowStockAlerts, fetchProductsWithStock, getApiErrorMessage } from '@/services/api';
 import type { ProductWithStock } from '@/types/inventory';
 
 export default function ProductListScreen() {
@@ -27,16 +27,18 @@ export default function ProductListScreen() {
       const [list, alerts] = await Promise.all([fetchProductsWithStock(), fetchLowStockAlerts()]);
       setProducts(list);
       setAlertCount(alerts.length);
-    } catch {
-      setError('No se pudo conectar al backend. Verifica EXPO_PUBLIC_API_URL.');
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e, 'No se pudo cargar el inventario.'));
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   return (
     <WebShell title="Lista de productos">
@@ -44,7 +46,10 @@ export default function ProductListScreen() {
         <Button variant="primary" onPress={() => router.push('/movement' as Href)}>
           Registrar movimiento
         </Button>
-        <Button variant="secondary" onPress={load}>
+        <Button variant="secondary" onPress={() => router.push('/products' as Href)}>
+          Gestionar catálogo
+        </Button>
+        <Button variant="ghost" onPress={load}>
           Actualizar
         </Button>
       </View>
@@ -52,6 +57,9 @@ export default function ProductListScreen() {
       <RetroPanel style={styles.stats}>
         <Text style={[TypeScale[12], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
           {`ACTIVOS: ${products.length}  |  ALERTAS STOCK: ${alertCount}`}
+        </Text>
+        <Text style={[TypeScale[11], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
+          {`API: ${API_BASE_URL}`}
         </Text>
       </RetroPanel>
 
@@ -67,9 +75,14 @@ export default function ProductListScreen() {
       {!loading && !error ? (
         <RetroPanel style={styles.list}>
           {products.length === 0 ? (
-            <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
-              Sin productos activos.
-            </Text>
+            <View style={styles.empty}>
+              <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
+                Sin productos activos. Crea el primero en Catálogo.
+              </Text>
+              <Button variant="primary" onPress={() => router.push('/products' as Href)}>
+                Ir a catálogo
+              </Button>
+            </View>
           ) : (
             products.map((p) => (
               <ProductRow
@@ -89,6 +102,7 @@ export default function ProductListScreen() {
 
 const styles = StyleSheet.create({
   toolbar: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  stats: { marginBottom: 16 },
+  stats: { marginBottom: 16, gap: 4 },
   list: { marginTop: 8 },
+  empty: { gap: 12 },
 });

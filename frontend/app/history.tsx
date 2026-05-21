@@ -11,12 +11,12 @@ import { MovementRow } from '@/components/molecules/MovementRow';
 import { WebShell } from '@/components/organisms/WebShell';
 import { FontFamilies, TypeScale } from '@/constants/theme';
 import { usePalette } from '@/hooks/use-palette';
-import { fetchMovements, fetchProducts } from '@/services/api';
+import { fetchMovements, fetchProducts, getApiErrorMessage } from '@/services/api';
 import type { Movement, MovementType, Product } from '@/types/inventory';
 
 export default function HistoryScreen() {
   const pal = usePalette();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
   const [productId, setProductId] = useState('');
@@ -26,7 +26,9 @@ export default function HistoryScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchProducts().then(setProducts).catch(() => setProducts([]));
+    fetchProducts()
+      .then(setProducts)
+      .catch(() => setProducts([]));
   }, []);
 
   const productOptions = useMemo(
@@ -45,8 +47,9 @@ export default function HistoryScreen() {
         endDate: endDate || undefined,
       });
       setMovements(data);
-    } catch {
-      setError('No se pudo cargar el historial.');
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e, 'No se pudo cargar el historial.'));
+      setMovements([]);
     } finally {
       setLoading(false);
     }
@@ -88,13 +91,15 @@ export default function HistoryScreen() {
 
       {loading ? <TerminalLoader message="QUERYING MOVEMENT LOG" /> : null}
       {error ? (
-        <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.accent }]}>
-          {error}
-        </Text>
+        <RetroPanel>
+          <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.accent }]}>
+            {error}
+          </Text>
+        </RetroPanel>
       ) : null}
 
       <RetroPanel style={styles.list}>
-        {!loading && movements.length === 0 ? (
+        {!loading && !error && movements.length === 0 ? (
           <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
             Sin registros para los filtros actuales.
           </Text>

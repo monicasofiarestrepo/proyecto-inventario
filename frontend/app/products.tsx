@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { type Href, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/atoms/Button';
@@ -13,6 +14,7 @@ import {
   createProduct,
   deactivateProduct,
   fetchProducts,
+  getApiErrorMessage,
   updateProduct,
 } from '@/services/api';
 import type { Product, UnitMeasure } from '@/types/inventory';
@@ -25,7 +27,9 @@ const UNITS: { value: UnitMeasure; label: string }[] = [
 
 export default function ProductsManageScreen() {
   const pal = usePalette();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -38,11 +42,12 @@ export default function ProductsManageScreen() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await fetchProducts();
       setProducts(data);
-    } catch {
-      setError('No se pudo cargar productos.');
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e, 'No se pudo cargar productos.'));
     } finally {
       setLoading(false);
     }
@@ -51,6 +56,15 @@ export default function ProductsManageScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const existingCategories = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of products) {
+      const c = p.category.trim();
+      if (c) set.add(c);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, 'es'));
+  }, [products]);
 
   const resetForm = () => {
     setEditingId(null);
@@ -85,6 +99,7 @@ export default function ProductsManageScreen() {
       unitMeasure,
       minStock: min,
     };
+    setSaving(true);
     try {
       if (editingId) {
         await updateProduct(editingId, payload);
@@ -94,21 +109,26 @@ export default function ProductsManageScreen() {
         setStatus('>> PRODUCTO CREADO');
       }
       resetForm();
-      load();
-    } catch {
-      setError('Error al guardar producto.');
+      await load();
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e, 'Error al guardar producto.'));
+    } finally {
+      setSaving(false);
     }
   };
 
   const onDeactivate = async (id: string) => {
     setError(null);
+    setSaving(true);
     try {
       await deactivateProduct(id);
       setStatus('>> PRODUCTO DESACTIVADO');
       if (editingId === id) resetForm();
-      load();
-    } catch {
-      setError('No se pudo desactivar (puede tener movimientos).');
+      await load();
+    } catch (e: unknown) {
+      setError(getApiErrorMessage(e, 'No se pudo desactivar el producto.'));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -123,11 +143,35 @@ export default function ProductsManageScreen() {
         <TextField label="Nombre" value={name} onChangeText={setName} />
         <TextField label="Descripción" value={description} onChangeText={setDescription} />
         <TextField label="Categoría" value={category} onChangeText={setCategory} />
-        <SelectField label="Unidad" options={UNITS} value={unitMeasure} onChange={(v) => setUnitMeasure(v as UnitMeasure)} />
-        <TextField label="Stock mínimo" value={minStock} onChangeText={setMinStock} keyboardType="number-pad" />
+        {existingCategories.length > 0 ? (
+          <View style={styles.categoryPicker}>
+            <Text style={[TypeScale[11], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
+              CATEGORÍAS EXISTENTES
+            </Text>
+            <View style={styles.categoryRow}>
+              {existingCategories.map((c) => (
+                <Button key={c} variant="secondary" onPress={() => setCategory(c)}>
+                  {c}
+                </Button>
+              ))}
+            </View>
+          </View>
+        ) : null}
+        <SelectField
+          label="Unidad"
+          options={UNITS}
+          value={unitMeasure}
+          onChange={(v) => setUnitMeasure(v as UnitMeasure)}
+        />
+        <TextField
+          label="Stock mínimo"
+          value={minStock}
+          onChangeText={setMinStock}
+          keyboardType="number-pad"
+        />
         <View style={styles.actions}>
-          <Button variant="primary" onPress={onSave}>
-            {editingId ? 'Actualizar' : 'Crear'}
+          <Button variant="primary" disabled={saving} onPress={onSave}>
+            {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear'}
           </Button>
           {editingId ? (
             <Button variant="ghost" onPress={resetForm}>
@@ -148,32 +192,47 @@ export default function ProductsManageScreen() {
       </RetroPanel>
 
       <RetroPanel style={styles.list}>
-        {products.map((p) => (
-          <View key={p.id} style={[styles.item, { borderBottomColor: pal.dataBorder }]}>
-            <Text style={[TypeScale[14], { fontFamily: FontFamilies.semibold, color: pal.text }]}>
-              {p.name}
-            </Text>
-            <Text style={[TypeScale[12], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
-              {`${p.category} · min ${p.minStock} ${p.unitMeasure}`}
-            </Text>
-            <View style={styles.actions}>
-              <Button variant="secondary" onPress={() => fillForm(p)}>
-                Editar
-              </Button>
-              <Button variant="ghost" onPress={() => onDeactivate(p.id)}>
-                Desactivar
-              </Button>
+        {products.length === 0 && !loading ? (
+          <Text style={[TypeScale[14], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
+            No hay productos activos.
+          </Text>
+        ) : (
+          products.map((p) => (
+            <View key={p.id} style={[styles.item, { borderBottomColor: pal.dataBorder }]}>
+              <Text style={[TypeScale[14], { fontFamily: FontFamilies.semibold, color: pal.text }]}>
+                {p.name}
+              </Text>
+              <Text style={[TypeScale[12], { fontFamily: FontFamilies.regular, color: pal.textMuted }]}>
+                {`${p.category} · min ${p.minStock} ${p.unitMeasure}`}
+              </Text>
+              <View style={styles.actions}>
+                <Button variant="secondary" onPress={() => fillForm(p)}>
+                  Editar
+                </Button>
+                <Button variant="ghost" onPress={() => onDeactivate(p.id)}>
+                  Desactivar
+                </Button>
+              </View>
             </View>
-          </View>
-        ))}
+          ))
+        )}
       </RetroPanel>
+
+      <View style={styles.footer}>
+        <Button variant="secondary" onPress={() => router.push('/' as Href)}>
+          Ver inventario
+        </Button>
+      </View>
     </WebShell>
   );
 }
 
 const styles = StyleSheet.create({
   form: { gap: 12, marginBottom: 16 },
+  categoryPicker: { gap: 8 },
+  categoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   list: { gap: 0 },
   item: { paddingVertical: 12, borderBottomWidth: 1, gap: 6 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 },
+  footer: { marginTop: 16 },
 });

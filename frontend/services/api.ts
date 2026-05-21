@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 
 import type {
   CreateMovementPayload,
@@ -10,14 +10,28 @@ import type {
   ProductWithStock,
 } from '@/types/inventory';
 
-const baseURL =
+export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
 
 export const api = axios.create({
-  baseURL,
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 60_000,
 });
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const data = error.response?.data as { message?: string | string[] } | undefined;
+    const msg = data?.message;
+    if (Array.isArray(msg)) return msg.join(', ');
+    if (typeof msg === 'string') return msg;
+    if (error.code === 'ECONNABORTED') return 'Tiempo de espera agotado (cold start Render). Reintenta.';
+    if (!error.response) {
+      return `Sin conexión con ${API_BASE_URL}. Revisa EXPO_PUBLIC_API_URL y CORS.`;
+    }
+  }
+  return fallback;
+}
 
 function mapProduct(raw: Record<string, unknown>): Product {
   return {
