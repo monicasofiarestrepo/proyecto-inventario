@@ -1,82 +1,104 @@
+/*
+ * Formulario de contacto -> info@bibatalentohumano.com
+ *
+ * Usa FormSubmit (https://formsubmit.co), que no necesita PHP ni guardar
+ * contraseñas en el sitio. Funciona igual en Render y en Network Solutions.
+ *
+ * Primera vez: FormSubmit envía un correo de ACTIVACIÓN a info@. Hay que abrirlo
+ * y hacer clic en "Activate Form". Después llegan todos los mensajes.
+ * Tras activarlo, FormSubmit da un código aleatorio: se puede poner en
+ * CONTACT_ENDPOINT en lugar del correo para que la dirección no quede en el código.
+ */
+var CONTACT_ENDPOINT = 'https://formsubmit.co/ajax/info@bibatalentohumano.com';
 
-$(document).ready(function(){
-    $('#submit_btn').click(function(){ 
-        //get input field values
-        var user_name       = $('#name').val(); 
-        var user_email      = $('#email').val();
-        var user_subject    = $('#subject').val();
-        var user_message    = $('#message').val();
-        
-        var notice     = $("#notice");
-        var $req_fields    = "Please fill in all the fields.";
+$(document).ready(function () {
+    var $form = $('#contact_form');
+    var $btn = $('#submit_btn');
+    var $notice = $('#notice');
+    var $loading = $('#cargando');
+    var sending = false;
 
-        //simple validation at client's end
-        var proceed = true;
-        
-        if ( notice.is(":visible") ) notice.hide();
+    function showNotice(type, html) {
+        $notice.removeClass().addClass('alert alert-' + type).html(html).hide().fadeIn(300);
+    }
 
-        if ( "" == user_name || "" == user_email || "" == user_subject || "" == user_message ){
+    function isEmail(v) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+    }
 
-               notice.removeClass().html($req_fields).addClass("alert alert-warning alert-dismissable").fadeIn(400);
-               proceed = false;
+    function setSending(on) {
+        sending = on;
+        $loading.css('display', on ? 'inline-block' : 'none');
+        $btn.toggleClass('disabled', on).attr('aria-disabled', on ? 'true' : 'false');
+    }
 
-          }
-        
-        if(user_name==""){ 
-            $('#name').css('border-color','red'); 
-            proceed = false;
+    function send(e) {
+        if (e) e.preventDefault();
+        if (sending) return;
+
+        var data = {
+            name: $.trim($('#name').val()),
+            email: $.trim($('#email').val()),
+            subject: $.trim($('#subject').val()),
+            message: $.trim($('#message').val())
+        };
+
+        $notice.hide();
+        var ok = true;
+        $.each(['name', 'email', 'subject', 'message'], function (_, f) {
+            if (!data[f]) { $('#' + f).css('border-color', 'red'); ok = false; }
+        });
+        if (!ok) {
+            showNotice('warning', 'Por favor completa todos los campos.');
+            return;
         }
-        if(user_email==""){ 
-            $('#email').css('border-color','red'); 
-            proceed = false;
+        if (!isEmail(data.email)) {
+            $('#email').css('border-color', 'red');
+            showNotice('warning', 'Por favor escribe un correo electrónico válido.');
+            return;
         }
-        if(user_subject=="") {    
-            $('#subject').css('border-color','red'); 
-            proceed = false;
-        }
-        if(user_message=="") {  
-            $('#message').css('border-color','red'); 
-            proceed = false;
-        }
+        // Honeypot anti-spam: los bots llenan este campo oculto
+        if ($('#website').val()) return;
 
-        //everything looks good! proceed...
-        if(proceed) 
-        {
-            //data to be sent to server
-            post_data = {'userName':user_name, 'userEmail':user_email, 'userSubject':user_subject, 'userMessage':user_message};
-            
-            //Ajax post data to server
-            $("#cargando").css("display", "inline");
-            $.post('contact.php', post_data, function(datos){
-                console.log(datos);
-                $("#cargando").css("display", "none");
-                //load json data from server and output message
-                //var respuesta_mail = $.parseJSON(datos);
-                console.log(datos);
-                var tipo = datos.type;
-                var respuesta = datos.text;
-                if(tipo == 'error')
-                {
-                    output = response.text;
-		notice.removeClass().html(output).addClass("alert alert-warning alert-dismissable").fadeIn(400);
-                }else{
-                
-                    output = respuesta;
-                    
-                    //reset values in all input fields
-                    $('#contact_form input').val(''); 
-                    $('#contact_form textarea').val(''); 
-		notice.removeClass().html(output).addClass("alert alert-success alert-dismissable").fadeIn(400);
-                }
-                
-            }, 'json');
-            
-        }
+        setSending(true);
+        $.ajax({
+            url: CONTACT_ENDPOINT,
+            method: 'POST',
+            dataType: 'json',
+            timeout: 20000,
+            data: {
+                Nombre: data.name,
+                email: data.email,
+                Asunto: data.subject,
+                Mensaje: data.message,
+                _subject: 'Contacto web BIBA: ' + data.subject,
+                _replyto: data.email,
+                _template: 'table',
+                _captcha: 'false'
+            }
+        }).done(function (res) {
+            if (res && (res.success === true || res.success === 'true')) {
+                $form[0].reset();
+                showNotice('success', '¡Gracias, ' + $('<div>').text(data.name).html() +
+                    '! Tu mensaje fue enviado. Te responderemos lo antes posible.');
+            } else if (res && /activ/i.test(res.message || '')) {
+                showNotice('warning', 'El formulario está pendiente de activación. Revisa el correo de ' +
+                    'info@bibatalentohumano.com y haz clic en "Activate Form".');
+            } else {
+                showNotice('danger', 'No pudimos enviar tu mensaje. Escríbenos directamente a ' +
+                    '<a href="mailto:info@bibatalentohumano.com">info@bibatalentohumano.com</a>.');
+            }
+        }).fail(function () {
+            showNotice('danger', 'Hubo un problema de conexión al enviar el mensaje. Inténtalo de nuevo o escríbenos a ' +
+                '<a href="mailto:info@bibatalentohumano.com">info@bibatalentohumano.com</a>.');
+        }).always(function () {
+            setSending(false);
+        });
+    }
+
+    $form.on('submit', send);
+
+    $('#contact_form input, #contact_form textarea').on('input', function () {
+        $(this).css('border-color', '');
     });
-    
-    //reset previously set border colors and hide all message on .keyup()
-    $("#contact_form input, #contact_form textarea").keyup(function() { 
-        $("#contact_form input, #contact_form textarea").css('border-color',''); 
-    });
-    
 });

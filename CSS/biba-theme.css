@@ -1384,3 +1384,16 @@ a[href^="mailto:"] {
   color: inherit;
   margin: 0;
 }
+
+/* Contact form feedback */
+#contact_form #notice {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  line-height: 1.5;
+}
+#contact_form #cargando .fa {
+  font-size: 22px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
