@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="100px" height="100px" viewBox="0 0 100 100" xml:space="preserve">
+  <!-- center person -->
+  <circle cx="50" cy="28" r="12"/>
+  <path d="M50,44c-14.5,0-26.5,9.5-26.5,21.5V72h53v-6.5C76.5,53.5,64.5,44,50,44z"/>
+  <!-- left person -->
+  <circle cx="18" cy="34" r="9"/>
+  <path d="M18,46c-10,0-17.5,6.5-17.5,14.5V66h15.5v-3c0-5.5,2.5-10.5,6.5-14C20.5,47.5,19.2,46.6,18,46z"/>
+  <!-- right person -->
+  <circle cx="82" cy="34" r="9"/>
+  <path d="M82,46c-1.2,0.6-2.5,1.5-3.5,2.5c4,3.5,6.5,8.5,6.5,14v3H100v-5.5C100,52.5,92.5,46,82,46z"/>
+</svg>
