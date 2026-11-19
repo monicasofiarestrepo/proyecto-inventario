@@ -42,8 +42,8 @@
                 <div class="container-fluid">
                     <div class="navbar-header">
                         <a class="navbar-brand" href="index.html"><img src="images/logo-tech.webp" alt="BIBA — Talento humano en tecnología" width="180" height="100"></a>
-						<a class="btn btn-navbar btn-default navbar-toggle"
-                            data-toggle="collapse" data-target=".navbar-collapse"><span class="nb_left pull-left"> <span class="fa fa-reorder"></span></span> <span class="nb_right pull-right">menu</span> </a></div>
+						<a class="btn btn-navbar btn-default navbar-toggle" href="#" role="button" aria-label="Abrir menú"
+                            data-toggle="collapse" data-target=".navbar-collapse"><span class="nb_left pull-left"> <span class="fa fa-reorder"></span></span> </a></div>
                     <div class="collapse navbar-collapse">
                         <ul class="nav pull-right navbar-nav">
                             <li class="active"><a href="index.html">Inicio</a></li>
@@ -110,7 +110,7 @@
             <section class="call_to_action">
                 <div itemscope itemtype="http://schema.org/Organization">
                     <h3><a id="quienes_somos" href="about-us.html">Quiénes somos</a> y qué te ofrecemos</h3>
-                    <h4><small><strong>BIBA S.A.</strong> es una empresa que busca promover su negocio en sincronía con sus aplicaciones de negocio en tecnología de la información, principalmente SAP. Tenemos 15 años compartiendo el crecimiento de nuestros clientes, nuestros profesionales logrando así reconocimiento y crecimiento empresarial.</small></h4>
+                    <h4><small><strong>BIBA S.A.</strong> es una empresa que busca promover su negocio en sincronía con sus aplicaciones de negocio en tecnología de la información, principalmente SAP. Tenemos <span class="js-years-since" data-since="2007">19</span> años compartiendo el crecimiento de nuestros clientes, nuestros profesionales logrando así reconocimiento y crecimiento empresarial.</small></h4>
                     <section class="features_teasers_wrapper">
                         <div class="row features_equal">
                             <div class="feature_teaser col-sm-6 col-md-3">
@@ -152,38 +152,50 @@
             </div>
             <div class="clients_track_wrap">
                 <div class="clients_track">
-                    <img class="client-logo" src="images/clients/sap.webp" alt="SAP" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/neoris.webp" alt="NEORIS" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="Eurofarma" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/europcar.webp" alt="Europcar" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/recope.webp" alt="RECOPE" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="Pellas Development" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/steincares.webp" alt="SteinCares" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/saval.webp" alt="Laboratorios Saval" height="48" loading="lazy">
-                    <img class="client-logo" src="images/clients/sap.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/neoris.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/europcar.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/recope.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/steincares.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/saval.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/sap.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/neoris.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/europcar.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/recope.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/steincares.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/saval.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/sap.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/neoris.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/europcar.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/recope.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/steincares.webp" alt="" height="48" loading="lazy" aria-hidden="true">
-                    <img class="client-logo" src="images/clients/saval.webp" alt="" height="48" loading="lazy" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/sap.webp" alt="SAP" height="48">
+                    <img class="client-logo" src="images/clients/ice.webp" alt="ICE — Instituto Costarricense de Electricidad" height="48">
+                    <img class="client-logo" src="images/clients/neoris.webp" alt="NEORIS" height="48">
+                    <img class="client-logo" src="images/clients/ministerio-hacienda.webp" alt="Ministerio de Hacienda" height="48">
+                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="Eurofarma" height="48">
+                    <img class="client-logo" src="images/clients/europcar.webp" alt="Europcar" height="48">
+                    <img class="client-logo" src="images/clients/fundatec.webp" alt="FundaTEC" height="48">
+                    <img class="client-logo" src="images/clients/recope.webp" alt="RECOPE" height="48">
+                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="Pellas Development" height="48">
+                    <img class="client-logo" src="images/clients/steincares.webp" alt="SteinCares" height="48">
+                    <img class="client-logo" src="images/clients/saval.webp" alt="Laboratorios Saval" height="48">
+                    <img class="client-logo" src="images/clients/sap.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/ice.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/neoris.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/ministerio-hacienda.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/europcar.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/fundatec.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/recope.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/steincares.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/saval.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/sap.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/ice.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/neoris.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/ministerio-hacienda.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/europcar.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/fundatec.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/recope.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/steincares.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/saval.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/sap.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/ice.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/neoris.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/ministerio-hacienda.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/eurofarma.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/europcar.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/fundatec.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/recope.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/pellas-development.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/steincares.webp" alt="" height="48" aria-hidden="true">
+                    <img class="client-logo" src="images/clients/saval.webp" alt="" height="48" aria-hidden="true">
                 </div>
             </div>
         </section>

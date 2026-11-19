@@ -461,7 +461,7 @@ header .navbar {
   width: max-content;
   gap: 64px;
   padding: 12px 64px 12px 0; /* = gap, keeps the -50% loop seamless */
-  animation: clients-scroll 48s linear infinite;
+  animation: clients-scroll 64s linear infinite;
 }
 .clients_track:hover {
   animation-play-state: paused;
@@ -1280,4 +1280,107 @@ section.features_teasers_wrapper {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* =Mobile fixes (Nov 2026)
+-------------------------------------------------------------- */
+/* Hamburger: icon only, 44px tap target */
+.navbar .btn-navbar.navbar-toggle {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  float: right;
+}
+.navbar .btn-navbar.navbar-toggle .nb_left {
+  float: none !important;
+  padding: 0 !important;
+  font-size: 20px;
+  line-height: 1;
+}
+@media (max-width: 767px) {
+  .navbar .btn-navbar.navbar-toggle {
+    display: flex;
+    margin: 16px 0 0;
+  }
+
+  /* Current page inside the open menu: was white text on white */
+  .in ul.nav li.active > a,
+  .in ul.nav li.active > a:hover,
+  .in ul.nav li.active > a:focus,
+  .collapsing ul.nav li.active > a {
+    color: var(--navy) !important;
+    background-color: var(--blue-soft) !important;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+  }
+  .in ul.nav > li.active:last-child > a,
+  .collapsing ul.nav > li.active:last-child > a {
+    color: var(--white) !important;
+    background-color: var(--navy) !important;
+  }
+  .navbar .nav > li > a {
+    margin: 0 0 4px;
+  }
+
+  /* Footer links: comfortable tap targets */
+  .site_footer a {
+    display: inline-block;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+}
+
+/* Home hero slider was hidden on phones by the original theme */
+@media only screen and (max-width: 480px) {
+  .slider_wrapper,
+  .full_page_photo.slider_wrapper {
+    display: block;
+    height: 440px;
+  }
+  .flexslider .item,
+  .flexslider .container {
+    height: 440px;
+  }
+}
+
+/* Long email addresses must wrap on narrow screens */
+a[href^="mailto:"] {
+  overflow-wrap: anywhere;
+}
+.navbar .btn-navbar.navbar-toggle,
+.navbar .btn-navbar.navbar-toggle:hover,
+.navbar .btn-navbar.navbar-toggle:focus,
+.navbar .btn-navbar.navbar-toggle:active {
+  background: var(--white);
+  color: var(--navy);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+/* Home slider on phones: caption padding, hide arrows */
+@media (max-width: 767px) {
+  .flexslider .container .carousel-caption {
+    left: 20px !important;
+    right: 20px !important;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .flexslider .container .carousel-caption h1 {
+    font-size: 26px;
+    line-height: 1.2;
+  }
+  .flexslider .flex-direction-nav {
+    display: none;
+  }
+}
+
+/* Auto years counter keeps the heading style */
+.about_stat strong .js-years-since {
+  display: inline;
+  font: inherit;
+  color: inherit;
+  margin: 0;
 }
