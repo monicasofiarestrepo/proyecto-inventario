@@ -356,6 +356,34 @@ header .navbar {
 .flexslider .container .carousel-caption .biba-btn {
   margin-top: 8px;
 }
+/* Whole slide links to its service page */
+.flexslider .slides > li.item {
+  position: relative;
+}
+.flexslider .slides > li.item .slide-target {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0);
+  transition: background-color 0.35s ease;
+}
+/* Hover hint: the photo lightens slightly (mouse devices only) */
+@media (hover: hover) {
+  .flexslider .slides > li.item .slide-target:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .flexslider .slides > li.item .carousel-caption h1 {
+    transition: transform 0.35s var(--ease);
+  }
+  .flexslider .slides > li.item:hover .carousel-caption h1 {
+    transform: translateX(4px);
+  }
+}
+.flexslider .slides > li.item .container {
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+}
 .flex-control-nav {
   bottom: 24px;
   z-index: 10;
@@ -1119,6 +1147,10 @@ section.features_teasers_wrapper {
 }
 .site_footer .footer_cta {
   margin-top: 14px;
+}
+.site_footer .footer_cta .fa {
+  width: auto;
+  color: var(--white);
 }
 .site_footer .copyright {
   padding: 18px 0;
